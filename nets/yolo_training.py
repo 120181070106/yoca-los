@@ -463,7 +463,7 @@ class Loss:
             扩信 = F.interpolate(信权,size=(640,640)).squeeze(1)
             image=torchvision.transforms.ToPILImage()(((扩信[0]>0.01)*255).byte())
             image.save('logs/ctt.png')#保存首图的信区得到一个类掩码图于日志目录下
-        # loss[3] = F.smooth_l1_loss(低框*信权, 拟框*信权)/权重#不想加此损，此处直改0
+        loss[3] = F.smooth_l1_loss(低框*信权, 拟框*信权)/权重#不想加此损，此处直改0
 
         # 对预测框与真实框进行分配
         # target_bboxes     bs, 8400, 4
@@ -480,8 +480,9 @@ class Loss:
         # 计算分类的损失
         # loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way
         loss[1] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
+        loss辅=0
         emb=torch.Tensor(np.arange(self.nc)).float().to(device).view(1,1,-1)
-        loss辅=0 #(torch.sum(torch.abs(torch.argmax(target_scores,-1,True).repeat(1,1,7)*torch.ones_like(target_scores)-emb)*F.softmax(pred_scores,-1),-1)*torch.sum(target_scores,-1)).sum()/target_scores_sum #具体见如下公式 ↓
+        # loss辅=(torch.sum(torch.abs(torch.argmax(target_scores,-1,True).repeat(1,1,7)*torch.ones_like(target_scores)-emb)*F.softmax(pred_scores,-1),-1)*torch.sum(target_scores,-1)).sum()/target_scores_sum #具体见如下公式 ↓
         loss[1]=loss[1]+loss辅 #Lshape=Σ{k=0→nc}||k-c_right||·softmax(P_0:nc)
         # 计算bbox的损失
         if fg_mask.sum():
