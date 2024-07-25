@@ -105,6 +105,8 @@ def non_max_suppression():# 51.37→51.5，效果虽微弱但仍有提升
             x=image_pred[:,4:4+num_classes]
             class_pred=torch.round(torch.sum((x/torch.sum(x,1,True))*torch.arange(0,7,device=x.device).unsqueeze(0).expand(8400,7),dim=1)).unsqueeze(1)
             class_conf=torch.gather(x, 1, class_pred.long())
+#-------------------------------(confusion.ipynb)----------------------------#
+    #放于经map.ipynb生成的map_out文件夹内，结合ground-truth和detection-result生成混淆矩阵并绘制
 
 #---------------------------(yolo_training.py，位损)----------------------------#
 import os,torchvision,random##最初506
